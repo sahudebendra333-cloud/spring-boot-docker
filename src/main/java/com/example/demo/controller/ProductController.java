@@ -19,7 +19,7 @@ public class ProductController {
 
     @GetMapping
     public List<Product> getAll() { return repository.findAll(); }
-    
+
     @GetMapping("/{id}")
     public Product getById(@PathVariable Long id) { return repository.findById(id).orElseThrow(); }
 

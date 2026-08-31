@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build Push and Deploy
 
 on:
   push:
@@ -19,10 +19,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Grant execute permission
+      - name: Grant Gradle Permission
         run: chmod +x gradlew
 
-      - name: Build Gradle Project
+      - name: Build Spring Boot Application
         run: ./gradlew clean build
 
       - name: Login to Docker Hub
@@ -37,3 +37,29 @@ jobs:
           context: .
           push: true
           tags: debendra321/spring-boot-docker:latest
+
+      - name: Deploy to EC2
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/private_key.pem
+          chmod 600 ~/.ssh/private_key.pem
+
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+          ssh -i ~/.ssh/private_key.pem \
+          ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+
+          docker pull debendra321/spring-boot-docker:latest
+
+          docker stop springboot-app || true
+          docker rm springboot-app || true
+
+          docker run -d \
+            --name springboot-app \
+            --restart unless-stopped \
+            -p 8080:8080 \
+            debendra321/spring-boot-docker:latest
+
+          docker image prune -f
+
+          EOF
