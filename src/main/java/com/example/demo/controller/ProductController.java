@@ -18,7 +18,9 @@ public class ProductController {
     public Product create(@RequestBody Product product) { return repository.save(product); }
 
     @GetMapping
-    public List<Product> getAll() { return repository.findAll(); }
+    public List<Product> getAll() {
+         System.out.println("debedra sahu");
+        return repository.findAll(); }
 
     @GetMapping("/{id}")
     public Product getById(@PathVariable Long id) { return repository.findById(id).orElseThrow(); }
